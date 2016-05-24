@@ -169,20 +169,14 @@ BigInteger BigInteger::operator --(int) // postfix
 BigInteger BigInteger::operator + (const BigInteger &b)
 {
 	BigInteger addition;
-	if( getSign() == b.getSign() ) // both +ve or -ve
-	{
+	if( getSign() == b.getSign() ) { // both +ve or -ve
 		addition.setNumber( add(getNumber(), b.getNumber() ) );
 		addition.setSign( getSign() );
-	}
-	else // sign different
-	{
-		if( absolute() > b.absolute() )
-		{
+	} else { // sign different
+		if( absolute() > b.absolute() ) {
 			addition.setNumber( subtract(getNumber(), b.getNumber() ) );
 			addition.setSign( getSign() );
-		}
-		else
-		{
+		} else {
 			addition.setNumber( subtract(b.getNumber(), getNumber() ) );
 			addition.setSign( b.getSign() );
 		}
@@ -369,18 +363,30 @@ bool BigInteger::less(const BigInteger &n1, const BigInteger &n2)
 		return true; 
     } else if(! sign1 && sign2) {
 		return false; 
-    } else if(! sign1) { // both +ve
+    } else if(! sign1) { // both +ve 
+		if(n1.getNumber().length() == n2.getNumber().length() )
+    		return n1.getNumber() < n2.getNumber();
+        else 
+            return n1.getNumber().length() < n2.getNumber().length();
+        /*
 		if(n1.getNumber().length() < n2.getNumber().length() )
 			return true;
 		if(n1.getNumber().length() > n2.getNumber().length() )
 			return false;
 		return n1.getNumber() < n2.getNumber();
+        */
 	} else { // both -ve
+		if(n1.getNumber().length() == n2.getNumber().length())
+    		return n1.getNumber().compare( n2.getNumber() ) > 0; // greater with -ve sign is LESS
+        else 
+            return n1.getNumber().length() > n2.getNumber().length(); 
+        /*
 		if(n1.getNumber().length() > n2.getNumber().length())
 			return true;
 		if(n1.getNumber().length() < n2.getNumber().length())
 			return false;
 		return n1.getNumber().compare( n2.getNumber() ) > 0; // greater with -ve sign is LESS
+        */
 	}
 }
 
@@ -393,7 +399,25 @@ bool BigInteger::greater(const BigInteger &n1, const BigInteger &n2)
 //-------------------------------------------------------------
 // adds two strings and returns their sum in as a string
 string BigInteger::add(string number1, string number2)
-{
+{ 
+    int length1 = number1.length(), length2 = number2.length();
+	int length = length1 > length2 ? length1 : length2;
+	string res(length, '0');
+	int carry = 0, index = 0;
+	while (index < length1 || index < length2){
+		if (index < length1)
+			carry += number1[length1 - index - 1] - '0';
+		if (index < length2)
+			carry += number2[length2 - index - 1] - '0';
+		res[length - index - 1] = carry % 10 + '0';
+		carry /= 10;
+		index++;
+	}
+	if (carry == 1)
+		res.insert(0, 1, '1');
+
+	return res;
+    /* 
 	string add = (number1.length() > number2.length()) ?  number1 : number2;
 	char carry = '0';
 	int differenceInLength = abs( (int) (number1.size() - number2.size()) );
@@ -421,6 +445,8 @@ string BigInteger::add(string number1, string number2)
 		add.insert(0,1,'1');
 	}
 	return add;
+    
+    */ 
 }
 
 //-------------------------------------------------------------
@@ -429,22 +455,21 @@ string BigInteger::subtract(string lhs, string rhs)
 {
     string ans = lhs; 
     int len1 = ans.length(), len2 = rhs.length();
-    int carray = 0, i = 0, h = 0;
+    int buy = 0, i = 0, h = 0;
 
-    for(i = 0; i < len2; i++) {
+    for(i = 0; i < len2; i++, buy = 0) {
         if(ans[len1 - 1 - i] < rhs[len2 - 1 - i]) {
             for(h = len1 - i - 2; h >= 0; h --) {
                 if(ans[h] == '0'){
                     ans[h] = '9';
                 } else if (ans[h] > '0'){
                     ans[h]--; 
-                    carray = 10;
+                    buy = 10;
                     break;
                 }
             }
         }
-        ans[len1 - 1 - i] = carray + ans[len1 - 1 - i] - rhs[len2 - 1 - i] + '0';
-        carray = 0;
+        ans[len1 - 1 - i] = buy  + ans[len1 - 1 - i] - rhs[len2 - 1 - i] + '0';
     }
 
     for(i = 0; i < len1 && ans[i] == '0'; i++) ;
